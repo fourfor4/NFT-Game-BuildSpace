@@ -29,7 +29,7 @@ const main = async () => {
   await txn.wait();
   console.log('Minted NFT #4');
 
-  console.log("Done deploying and minting!");
+  console.log("Done deploying and minting!!");
 }
 
 const runMain = async () => {
