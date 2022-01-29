@@ -117,15 +117,16 @@ const App = () => {
       console.log('Checking for Character NFT on address:', currentAccount);
 
       const provider = new ethers.providers.Web3Provider(window.ethereum);
+
       const signer = provider.getSigner();
       const gameContract = new ethers.Contract(
         CONTRACT_ADDRESS,
         myEpicGame.abi,
         signer
       );
-      console.log(provider)
-      console.log(signer)
+      console.log('before')
       const txn = await gameContract.checkIfUserHasNFT();
+      console.log('after')
       if (txn.name) {
         console.log('User has character NFT');
         setCharacterNFT(transformCharacterData(txn));
@@ -139,8 +140,6 @@ const App = () => {
       fetchNFTMetadata();
     }
   }, [currentAccount]);
-
-
 
   return (
     <div className="App">
