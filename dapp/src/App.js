@@ -6,6 +6,9 @@ import SelectCharacter from './Components/SelectCharacter';
 import { CONTRACT_ADDRESS, transformCharacterData } from './constants';
 import myEpicGame from './utils/MyEpicGame.json';
 import { ethers } from 'ethers';
+import Arena from './Components/Arena';
+import LoadingIndicator from './Components/LoadingIndicator';
+
 // Constants
 const TWITTER_HANDLE = '_buildspace';
 const TWITTER_LINK = `https://twitter.com/${TWITTER_HANDLE}`;
@@ -15,6 +18,8 @@ const App = () => {
   const [currentAccount, setCurrentAccount] = useState(null);
 
   const [characterNFT, setCharacterNFT] = useState(null);
+
+  const [isLoading, setIsLoading] = useState(false);
   // Actions
   const checkIfWalletIsConnected = async () => {
     try {
@@ -22,6 +27,7 @@ const App = () => {
 
       if (!ethereum) {
         console.log('Make sure you have MetaMask!');
+        setIsLoading(false);
         return;
       } else {
         console.log('We have the ethereum object', ethereum);
@@ -39,6 +45,7 @@ const App = () => {
     } catch (error) {
       console.log(error);
     }
+    setIsLoading(false);
   };
 
   /*
@@ -82,6 +89,10 @@ const App = () => {
 
   // Render Methods
   const renderContent = () => {
+    if (isLoading) {
+      return <LoadingIndicator />;
+    }
+
     /*
      * Scenario #1
      */
@@ -105,10 +116,13 @@ const App = () => {
        */
     } else if (currentAccount && !characterNFT) {
       return <SelectCharacter setCharacterNFT={setCharacterNFT} />;
+    } else if (currentAccount && characterNFT) {
+      return <Arena characterNFT={characterNFT} setCharacterNFT={setCharacterNFT} />
     }
   };
 
   useEffect(() => {
+    setIsLoading(true);
     checkIfWalletIsConnected();
   }, []);
 
@@ -117,22 +131,23 @@ const App = () => {
       console.log('Checking for Character NFT on address:', currentAccount);
 
       const provider = new ethers.providers.Web3Provider(window.ethereum);
-
       const signer = provider.getSigner();
       const gameContract = new ethers.Contract(
         CONTRACT_ADDRESS,
         myEpicGame.abi,
         signer
       );
-      console.log('before')
-      const txn = await gameContract.checkIfUserHasNFT();
-      console.log('after')
-      if (txn.name) {
+
+      const characterNFT = await gameContract.checkIfUserHasNFT();
+      if (characterNFT.name) {
         console.log('User has character NFT');
-        setCharacterNFT(transformCharacterData(txn));
-      } else {
-        console.log('No character NFT found');
+        setCharacterNFT(transformCharacterData(characterNFT));
       }
+
+      /*
+       * Once we are done with all the fetching, set loading state to false
+       */
+      setIsLoading(false);
     };
 
     if (currentAccount) {
